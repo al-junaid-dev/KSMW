@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import { createClient } from '../../utils/supabase/server'
 import { MapPin, User } from 'lucide-react'
 import TimeClockManager from './TimeClockManager'
-import EmployeeNavbar from './EmployeeNavbar'
 import ShiftHistoryList from './ShiftHistoryList'
 
 export default async function DashboardPage() {
@@ -63,8 +62,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
-      <EmployeeNavbar employeeName={profile?.full_name || 'Staff'} shopName={shopName} />
-      
       <main className="flex-1 overflow-y-auto p-4 md:p-8">
         <div className="max-w-3xl mx-auto space-y-6 pb-20">
           

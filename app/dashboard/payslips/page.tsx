@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '../../../utils/supabase/server'
-import EmployeeNavbar from '../EmployeeNavbar'
 import PayslipList from '../PayslipList'
 
 export default async function EmployeePayslipsPage() {
@@ -30,8 +29,6 @@ export default async function EmployeePayslipsPage() {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
-      <EmployeeNavbar employeeName={profile?.full_name || 'Staff'} shopName={shopName} />
-      
       <main className="flex-1 overflow-y-auto p-4 md:p-8">
         <div className="max-w-3xl mx-auto space-y-6 pb-20">
           <div>

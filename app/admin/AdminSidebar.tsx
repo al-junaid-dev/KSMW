@@ -25,7 +25,7 @@ export default function AdminSidebar({ adminName }: { adminName: string }) {
   return (
     <>
       {/* Mobile Top Bar */}
-      <div className="md:hidden sticky top-0 z-50 border-b border-[#4f4931]/50 bg-[#132322] backdrop-blur-md text-white p-4 flex justify-between items-center sticky top-0 z-40 shadow-md">
+      <div className="md:hidden sticky top-0 z-50 border-b border-[#4f4931]/50 bg-[#132322] backdrop-blur-md text-white p-4 flex justify-between items-center sticky top-0 shadow-md">
         <div className="flex items-center gap-2">
   
             <div className="relative h-8 w-8 overflow-hidden rounded-md flex items-center justify-center bg-white/10">
@@ -93,12 +93,12 @@ export default function AdminSidebar({ adminName }: { adminName: string }) {
 
         <div className="p-4 border-t border-slate-800">
           <div className="px-4 py-3 mb-2 flex items-center gap-3 bg-[#be9a62]/10 rounded-xl">
-            <div className="h-10 w-10 rounded-full bg-[#132322] border border-[white] flex items-center justify-center font-bold text-sm">
+            <div className="h-10 w-10 rounded-full bg-[#132322] border border-2 border-[#be9a62] flex items-center justify-center font-bold text-[white] text-sm">
               {adminName.charAt(0)}
             </div>
             <div className="overflow-hidden">
               <p className="text-sm font-medium truncate">{adminName}</p>
-              <p className="text-xs text-slate-400">Admin</p>
+              <p className="text-xs text-[#be9a62] truncate">Admin</p>
             </div>
           </div>
           <button 
