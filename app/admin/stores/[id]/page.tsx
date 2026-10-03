@@ -2,27 +2,26 @@ import { createClient } from './../../../../utils/supabase/server'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { ArrowLeft, Store, UserCheck, UserX, AlertTriangle, Clock } from 'lucide-react'
+import StoreActions from './StoreActions'
 
-// Note the type change here: params is now a Promise
 export default async function StoreDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-  // 1. Unwrap the params Promise (Next.js 15 requirement)
   const resolvedParams = await params
   const storeId = resolvedParams.id
   
   const supabase = await createClient()
 
-  // 2. Fetch the specific shop details
+  // 1. Fetch the specific shop details
   const { data: shop } = await supabase.from('shops').select('*').eq('id', storeId).single()
-  if (!shop) redirect('/admin')
+  if (!shop) redirect('/admin/stores')
 
-  // 3. Fetch employees assigned to this specific shop
+  // 2. Fetch employees assigned to this specific shop
   const { data: employees } = await supabase
     .from('profiles')
     .select('*')
     .eq('shop_id', storeId)
     .eq('role', 'employee')
 
-  // 4. Fetch today's logs specifically for these employees
+  // 3. Fetch today's logs specifically for these employees
   const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' })
   const todayStr = formatter.format(new Date())
   
@@ -38,7 +37,7 @@ export default async function StoreDetailsPage({ params }: { params: Promise<{ i
     todayLogs = data || []
   }
 
-  // 5. Categorize staff
+  // 4. Categorize staff
   const staffList = employees?.map(emp => {
     const log = todayLogs?.find(l => l.employee_id === emp.id)
     
@@ -76,26 +75,33 @@ export default async function StoreDetailsPage({ params }: { params: Promise<{ i
       {/* Navigation & Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div className="space-y-1">
-          <Link href="/admin" className="inline-flex items-center text-sm text-[#132322] hover:text-[#be9a62] font-medium mb-2">
-            <ArrowLeft className="h-4 w-4 mr-1" /> Back to Dashboard
+          <Link href="/admin/stores" className="inline-flex items-center text-sm text-[#132322] hover:text-[#be9a62] font-medium mb-2">
+            <ArrowLeft className="h-4 w-4 mr-1" /> Back to Stores
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Store className="h-6 w-6 text-[#be9a62]" /> {shop.name}
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <Store className="h-6 w-6 text-[#be9a62]" /> {shop.name}
+            </h1>
+            {/* Edit & Delete Action Buttons */}
+            <StoreActions 
+              store={shop} 
+              employeeCount={employees?.length || 0} 
+            />
+          </div>
           <p className="text-gray-500 text-sm">{shop.location || 'No location set'}</p>
         </div>
         
         {/* Quick Shop Stats */}
         <div className="flex gap-3">
-          <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm text-center min-w-[80px]">
+          <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-xs text-center min-w-[80px]">
             <p className="text-xs text-gray-500 font-medium">Active</p>
             <p className="text-lg font-bold text-blue-600">{activeCount}</p>
           </div>
-          <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm text-center min-w-[80px]">
+          <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-xs text-center min-w-[80px]">
             <p className="text-xs text-gray-500 font-medium">Absent</p>
             <p className="text-lg font-bold text-red-600">{absentCount}</p>
           </div>
-          <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm text-center min-w-[80px]">
+          <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-xs text-center min-w-[80px]">
             <p className="text-xs text-gray-500 font-medium">Late</p>
             <p className="text-lg font-bold text-orange-500">{lateCount}</p>
           </div>
@@ -103,7 +109,7 @@ export default async function StoreDetailsPage({ params }: { params: Promise<{ i
       </div>
 
       {/* Staff Status List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-xs border border-gray-100 overflow-hidden">
         <div className="p-4 border-b border-gray-100 bg-slate-50">
           <h2 className="font-semibold text-gray-900">Today's Roster Status</h2>
         </div>
@@ -128,7 +134,7 @@ export default async function StoreDetailsPage({ params }: { params: Promise<{ i
                   <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${staff.statusColor}`}>
                     <staff.Icon className="h-3.5 w-3.5" />
                     {staff.status}
-                    {staff.status === 'Active Now' && <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse ml-1"></span>}
+                    {staff.status === 'Active Now' && <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse ml-1" />}
                   </span>
                   
                   {staff.log && (

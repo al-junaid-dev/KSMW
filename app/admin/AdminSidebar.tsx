@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, LayoutDashboard, Users, FileText, LogOut } from 'lucide-react'
+import { Menu, X, LayoutDashboard, Users, FileText, LogOut, Store } from 'lucide-react'
 import { logout } from '../auth/actions'
 
 export default function AdminSidebar({ adminName }: { adminName: string }) {
@@ -14,6 +14,7 @@ export default function AdminSidebar({ adminName }: { adminName: string }) {
 
   const navLinks = [
     { name: 'Overview', href: '/admin', icon: LayoutDashboard },
+    { name: 'Stores', href: '/admin/stores', icon: Store },
     { name: 'Directory', href: '/admin/directory', icon: Users },
     { name: 'Payroll', href: '/admin/payroll', icon: FileText },
   ]
@@ -29,7 +30,7 @@ export default function AdminSidebar({ adminName }: { adminName: string }) {
       {/* Mobile Top Bar */}
       <div className="md:hidden sticky top-0 z-50 border-b border-[#4f4931]/50 bg-[#132322] backdrop-blur-md text-white p-4 flex justify-between items-center shadow-md">
         <div className="flex items-center gap-2">
-          <div className="relative h-8 w-8 overflow-hidden rounded-md flex items-center justify-center bg-white/10">
+          <div className="relative h-8 w-8 overflow-hidden rounded-md flex items-center justify-center bg-[wheat]/10">
             <Image 
               src="/logo.png" 
               alt="Logo" 
@@ -67,7 +68,7 @@ export default function AdminSidebar({ adminName }: { adminName: string }) {
           <button 
             onClick={() => setIsDesktopExpanded(!isDesktopExpanded)}
             title={isDesktopExpanded ? "Collapse Sidebar" : "Expand Sidebar"}
-            className="hidden md:block relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-white/10 group cursor-pointer"
+            className="hidden md:block relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-[wheat]/10 group cursor-pointer"
           >
             {/* Layer 1: Logo (Visible by default, fades out on hover) */}
             <div className="absolute inset-0 flex items-center justify-center transition-all duration-300 opacity-100 group-hover:opacity-0 group-hover:scale-90">
@@ -86,7 +87,7 @@ export default function AdminSidebar({ adminName }: { adminName: string }) {
           </button>
 
           {/* --- MOBILE: Static Logo (No hover effects) --- */}
-          <div className="md:hidden relative h-10 w-10 shrink-0 overflow-hidden rounded-md flex items-center justify-center bg-white/10">
+          <div className="md:hidden relative h-10 w-10 shrink-0 overflow-hidden rounded-md flex items-center justify-center bg-[wheat]/10">
             <Image 
               src="/logo.png" 
               alt="Logo" 
