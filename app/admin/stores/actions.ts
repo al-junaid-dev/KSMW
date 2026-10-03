@@ -72,20 +72,38 @@ export async function deleteStore(storeId: string) {
   return { success: true }
 }
 
-export async function assignEmployeeStore(employeeId: string, shopId: string | null) {
+export async function assignEmployeeStore(employeeId: string, targetShopId: string | null) {
   const supabase = await createClient()
+  const today = new Date().toISOString().split('T')[0]
 
+  // 1. Close out previous assignment history record
+  await supabase
+    .from('employee_store_assignments')
+    .update({ effective_to: today })
+    .eq('employee_id', employeeId)
+    .is('effective_to', null)
+
+  // 2. If assigning to a new store, create the new history row
+  if (targetShopId) {
+    await supabase
+      .from('employee_store_assignments')
+      .insert({
+        employee_id: employeeId,
+        shop_id: targetShopId,
+        effective_from: today,
+        effective_to: null,
+      })
+  }
+
+  // 3. Update current profile pointer
   const { error } = await supabase
     .from('profiles')
-    .update({ shop_id: shopId })
+    .update({ shop_id: targetShopId })
     .eq('id', employeeId)
 
-  if (error) {
-    return { error: error.message }
-  }
+  if (error) return { error: error.message }
 
   revalidatePath('/admin/stores')
   revalidatePath('/admin')
-  revalidatePath('/admin/directory')
   return { success: true }
 }

@@ -141,3 +141,37 @@ export async function finalizePayslips(month: number, year: number) {
   if (error) throw new Error(error.message)
   revalidatePath('/admin/payroll')
 }
+
+
+export async function deleteFinalizedPayslip(payslipId: string): Promise<{ success?: boolean; error?: string }> {
+  const supabase = await createClient()
+
+  // 1. Verify that the payslip exists and is finalized
+  const { data: slip, error: fetchError } = await supabase
+    .from('payslips')
+    .select('id, status')
+    .eq('id', payslipId)
+    .single()
+
+  if (fetchError || !slip) {
+    return { error: 'Payslip record not found' }
+  }
+
+  if (slip.status !== 'finalized') {
+    return { error: 'Only finalized payslips can be deleted with this action.' }
+  }
+
+  // 2. Delete the record
+  const { error: deleteError } = await supabase
+    .from('payslips')
+    .delete()
+    .eq('id', payslipId)
+
+  if (deleteError) {
+    return { error: deleteError.message }
+  }
+
+  revalidatePath('/admin/payroll')
+  revalidatePath('/dashboard/payslips')
+  return { success: true }
+}

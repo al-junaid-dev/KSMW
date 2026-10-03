@@ -1,10 +1,10 @@
 'use client'
 
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, FileText, Clock, LogOut, Settings } from 'lucide-react'
+import { Calendar, Menu, X, FileText, Clock, LogOut, Settings } from 'lucide-react'
 import { logout } from '../auth/actions'
 import toast from 'react-hot-toast'
 
@@ -12,16 +12,33 @@ export default function EmployeeSidebar({ employeeName, shopName }: { employeeNa
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isDesktopExpanded, setIsDesktopExpanded] = useState(true)
   const pathname = usePathname()
+  const isFirstRender = useRef(true)
+
+  // Automatically shrink sidebar on desktop & close mobile drawer once page loads
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    setIsDesktopExpanded(false)
+    setIsMobileOpen(false)
+  }, [pathname])
 
   const navLinks = [
     { name: 'Time & Shifts', href: '/dashboard', icon: Clock },
     { name: 'My Payslips', href: '/dashboard/payslips', icon: FileText },
+    { name: 'Attendance', href: '/dashboard/attendance', icon: Calendar }
   ]
 
   const handleLogout = async () => {
     if (window.confirm('Are you sure you want to log out?')) {
       await logout()
     }
+  }
+
+  const handleNavClick = () => {
+    setIsMobileOpen(false)
+    setIsDesktopExpanded(false)
   }
 
   return (
@@ -69,7 +86,7 @@ export default function EmployeeSidebar({ employeeName, shopName }: { employeeNa
             title={isDesktopExpanded ? "Collapse Sidebar" : "Expand Sidebar"}
             className="hidden md:block relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-white/10 group cursor-pointer"
           >
-            {/* Layer 1: Logo (Visible by default, scales down & fades out on hover) */}
+            {/* Layer 1: Logo */}
             <div className="absolute inset-0 flex items-center justify-center transition-all duration-300 opacity-100 group-hover:opacity-0 group-hover:scale-90">
               <Image 
                 src="/logo.png" 
@@ -79,13 +96,13 @@ export default function EmployeeSidebar({ employeeName, shopName }: { employeeNa
               />
             </div>
             
-            {/* Layer 2: Menu Icon (Hidden by default, fades in on hover over solid background) */}
+            {/* Layer 2: Menu Icon */}
             <div className="absolute inset-0 flex items-center justify-center bg-[#132322] transition-all duration-300 opacity-0 group-hover:opacity-100 group-hover:scale-100">
               <Menu className="h-5 w-5 text-[#be9a62]" />
             </div>
           </button>
 
-          {/* MOBILE: Static Logo (No hover effects on touch screens) */}
+          {/* MOBILE: Static Logo */}
           <div className="md:hidden relative h-10 w-10 shrink-0 overflow-hidden rounded-md flex items-center justify-center bg-white/10">
             <Image 
               src="/logo.png" 
@@ -117,7 +134,7 @@ export default function EmployeeSidebar({ employeeName, shopName }: { employeeNa
                 key={link.name} 
                 href={link.href}
                 title={!isDesktopExpanded ? link.name : undefined}
-                onClick={() => setIsMobileOpen(false)}
+                onClick={handleNavClick}
                 className={`
                   flex items-center gap-3 py-3 rounded-xl transition-all duration-200
                   ${isActive ? 'bg-[#be9a62] text-[#132322] shadow-lg shadow-[#be9a62]/20 font-semibold' : 'text-slate-300 hover:bg-[#be9a62]/10 hover:text-white'}
@@ -146,7 +163,7 @@ export default function EmployeeSidebar({ employeeName, shopName }: { employeeNa
               </div>
             </div>
             
-            {/* Settings Button (visible when expanded) */}
+            {/* Settings Button */}
             <button 
               onClick={() => toast('Settings coming soon!')} 
               className={`text-[#b09a77] hover:text-[#be9a62] p-1 transition-colors ${isDesktopExpanded ? 'block' : 'md:hidden'}`} 

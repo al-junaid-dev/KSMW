@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, X, LayoutDashboard, Users, FileText, LogOut, Store } from 'lucide-react'
@@ -11,6 +11,17 @@ export default function AdminSidebar({ adminName }: { adminName: string }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isDesktopExpanded, setIsDesktopExpanded] = useState(true)
   const pathname = usePathname()
+  const isFirstRender = useRef(true)
+
+  // Automatically shrink sidebar on desktop & close mobile drawer once page loads
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    setIsDesktopExpanded(false)
+    setIsMobileOpen(false)
+  }, [pathname])
 
   const navLinks = [
     { name: 'Overview', href: '/admin', icon: LayoutDashboard },
@@ -23,6 +34,11 @@ export default function AdminSidebar({ adminName }: { adminName: string }) {
     if (window.confirm('Are you sure you want to log out?')) {
       await logout()
     }
+  }
+
+  const handleNavClick = () => {
+    setIsMobileOpen(false)
+    setIsDesktopExpanded(false)
   }
 
   return (
@@ -118,10 +134,10 @@ export default function AdminSidebar({ adminName }: { adminName: string }) {
                 key={link.name} 
                 href={link.href}
                 title={!isDesktopExpanded ? link.name : undefined}
-                onClick={() => setIsMobileOpen(false)}
+                onClick={handleNavClick}
                 className={`
                   flex items-center gap-3 py-3 rounded-xl transition-all duration-200
-                  ${isActive ? 'bg-[#be9a62] text-[#132322] shadow-lg shadow-[#be9a62]/20' : 'text-slate-300 hover:bg-[#be9a62]/10 hover:text-white'}
+                  ${isActive ? 'bg-[#be9a62] text-[#132322] shadow-lg shadow-[#be9a62]/20 font-semibold' : 'text-slate-300 hover:bg-[#be9a62]/10 hover:text-white'}
                   ${isDesktopExpanded ? 'px-4 justify-start' : 'md:justify-center px-0'}
                 `}
               >
@@ -150,7 +166,7 @@ export default function AdminSidebar({ adminName }: { adminName: string }) {
             onClick={handleLogout}
             title={!isDesktopExpanded ? "Logout" : undefined}
             className={`
-              flex items-center gap-3 py-3 w-full text-red-400 hover:bg-red-500/10 rounded-xl transition-colors
+              flex items-center gap-3 py-3 w-full text-red-400 hover:bg-red-500/10 rounded-xl transition-colors text-sm font-medium
               ${isDesktopExpanded ? 'px-4 justify-start text-left' : 'md:justify-center px-0'}
             `}
           >

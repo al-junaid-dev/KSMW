@@ -51,6 +51,16 @@ export default async function AdminStoresPage() {
   const totalPresentToday = new Set(todayLogs?.map(log => log.employee_id)).size
   const totalAttendanceRate = totalStaff > 0 ? Math.round((totalPresentToday / totalStaff) * 100) : 0
 
+  // Dynamic color configuration based on attendance rate
+const attendanceColorClass = 
+  totalStaff === 0 
+    ? 'text-gray-500' 
+    : totalAttendanceRate >= 80 
+    ? 'text-green-600' 
+    : totalAttendanceRate >= 50 
+    ? 'text-amber-500' 
+    : 'text-red-600'
+
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 pb-20">
       
@@ -95,12 +105,12 @@ export default async function AdminStoresPage() {
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-1">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-            <TrendingUp className="h-4 w-4 text-green-600" /> Attendance Rate
-          </p>
-          <p className="text-2xl font-black text-green-600">{totalAttendanceRate}%</p>
-          <p className="text-xs text-gray-400">{totalPresentToday} of {totalStaff} present today</p>
-        </div>
+  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+    <TrendingUp className={`h-4 w-4 ${attendanceColorClass}`} /> Attendance Rate
+  </p>
+  <p className={`text-2xl font-black ${attendanceColorClass}`}>{totalAttendanceRate}%</p>
+  <p className="text-xs text-gray-400">{totalPresentToday} of {totalStaff} present today</p>
+</div>
       </div>
       
       {/* Staff Store Allocation Manager Section */}
