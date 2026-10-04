@@ -31,9 +31,9 @@ export default async function EmployeePayslipsPage() {
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
       <main className="flex-1 overflow-y-auto p-4 md:p-8">
         <div className="max-w-3xl mx-auto space-y-6 pb-20">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Payslip Ledger</h1>
-            <p className="text-gray-500 text-sm">Download your official monthly salary statements</p>
+          <div className="bg-[#132322] rounded-xl shadow-lg shadow-[#132322]/50 p-6 border border-[#d1d5db]" >
+            <h1 className="text-2xl font-bold text-[wheat] border-b border-[wheat]/30 pb-1 my-4">Payslip Ledger</h1>
+            <p className="text-[wheat]/80 text-sm">Download your official monthly salary statements</p>
           </div>
 
           <PayslipList payslips={payslips || []} profile={profile} />

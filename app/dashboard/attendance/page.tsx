@@ -2,7 +2,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '../../../utils/supabase/server'
 import { 
   Calendar, 
-  MapPin, 
+  MapPin,
+  Store, 
   CheckCircle, 
   Coffee, 
   AlertTriangle, 
@@ -210,30 +211,35 @@ export default async function EmployeeAttendancePage({
     <div className="max-w-4xl mx-auto space-y-6 pb-20">
       
       {/* Page Header with Highlighted Joining Date Capsule */}
-      <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[#132322]/90 p-5 rounded-2xl border border-[wheat] shadow-lg shadow-[#132322]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
           <div className="h-12 w-12 rounded-xl bg-[#132322] border border-[#be9a62]/30 text-[#be9a62] flex items-center justify-center font-bold text-lg shrink-0">
             {profile.full_name?.charAt(0) || 'E'}
           </div>
           <div>
-            <h1 className="text-lg font-bold text-gray-900">{profile.full_name}</h1>
-            <p className="text-xs text-gray-500 flex items-center gap-1.5 mt-0.5">
+            <h1 className="text-lg font-bold text-[wheat]">{profile.full_name}</h1>
+            <p className="text-xs text-[wheat]/80 flex items-center gap-1.5 mt-0.5">
               <span>{profile.designation || 'Store Staff'}</span>
               <span>&bull;</span>
               <span className="flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5 text-gray-400" /> {shopName}
+                <MapPin className="h-3.5 w-3.5 text-[wheat]/80" /> {shopName}
               </span>
             </p>
           </div>
         </div>
-
-        <div className="bg-[#be9a62]/10 border border-[#be9a62]/40 px-4 py-2.5 rounded-xl self-start sm:self-auto shadow-2xs">
-          <p className="text-[10px] font-bold text-[#be9a62] uppercase tracking-wider flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5" /> Date of Joining
-          </p>
-          <p className="text-sm font-black text-gray-900 mt-0.5">
-            {formattedJoiningDate}
-          </p>
+        {/* Joining Date Capsule */}
+        <div className="flex items-center gap-3 bg-[#be9a62]/10 border border-[#be9a62]/40 px-3.5 py-2 rounded-xl shadow-2xs self-start sm:self-auto shrink-0">
+          <div className="h-9 w-9 rounded-lg bg-[#be9a62]/15 border border-[#be9a62]/30 flex items-center justify-center text-[#be9a62] shrink-0">
+            <Calendar className="h-5 w-5" />
+          </div>
+          <div className="flex flex-col">
+            <p className="text-[10px] font-bold text-[#be9a62] uppercase tracking-wider border-b border-[#be9a62]/20 pb-0.5">
+               Date of Joining
+            </p>
+            <p className="text-sm font-black text-[wheat]/70 leading-tight mt-1 whitespace-nowrap">
+              {formattedJoiningDate}
+            </p>
+          </div>
         </div>
       </div>
 

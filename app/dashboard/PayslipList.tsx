@@ -7,8 +7,8 @@ const PDFDownloadButton = dynamic(() => import('../admin/payroll/PDFDownloadButt
 
 export default function PayslipList({ payslips, profile }: { payslips: any[], profile: any }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
-      <div className="p-6 border-b border-gray-100 flex items-center gap-2 bg-slate-50">
+    <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-[#d1d5db]">
+      <div className="p-6 border-b border-[#d1d5db] flex items-center gap-2 bg-[#b09a77]/10">
         <FileText className="h-5 w-5 text-gray-500" />
         <h3 className="text-lg font-semibold text-gray-900">My Payslips</h3>
       </div>

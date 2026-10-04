@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '../../utils/supabase/server'
-import { MapPin, User } from 'lucide-react'
+import { MapPin, User, Store } from 'lucide-react'
 import TimeClockManager from './TimeClockManager'
 import ShiftHistoryList from './ShiftHistoryList'
 
@@ -71,14 +71,14 @@ export default async function DashboardPage() {
     <div className="max-w-3xl mx-auto space-y-6 pb-20">
       
       {/* Header */}
-      <header className="bg-white rounded-xl shadow-xs p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-gray-100">
+      <header className="bg-[#132322] rounded-xl shadow-xs p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-gray-100">
         <div>
-          <h1 className="text-2xl font-bold text-[#be9a62] flex items-center gap-2">
-            <User className="h-6 w-6 text-[#be9a62]" />
-            Welcome, {profile?.full_name}
+          <h1 className="text-2xl font-bold text-[wheat] flex items-center gap-2">
+            <User className="h-6 w-6 text-[wheat]" />
+            Welcome,<h1 className='text-2xl font-bold text-[white]'>{profile?.full_name}</h1>
           </h1>
-          <p className="text-gray-500 text-sm flex items-center gap-1 mt-1">
-            <MapPin className="h-4 w-4" />
+          <p className="text-[wheat]/80 font-bold text-sm flex items-center gap-1 mt-1">
+            <Store className="h-4 w-4" />
             {shopName}
           </p>
         </div>
