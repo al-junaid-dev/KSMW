@@ -75,7 +75,7 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-2xl font-bold text-[wheat] flex items-center gap-2">
             <User className="h-6 w-6 text-[wheat]" />
-            Welcome,<h1 className='text-2xl font-bold text-[white]'>{profile?.full_name}</h1>
+            Welcome, <h1 className='text-2xl font-bold text-[white]'>{profile?.full_name}</h1>
           </h1>
           <p className="text-[wheat]/80 font-bold text-sm flex items-center gap-1 mt-1">
             <Store className="h-4 w-4" />
