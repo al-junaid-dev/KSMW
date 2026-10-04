@@ -108,7 +108,7 @@ export async function deleteEmployeeProfile(employeeId: string) {
   return { success: true }
 }
 
-// 5. Update Daily Attendance Override (Leaves, Weekoffs, Present, Late)
+// 5. Update Daily Attendance Override (Leaves, Weekoffs, Present, Late, Scheduled)
 export async function updateAttendanceDayLog(
   employeeId: string,
   dateStr: string,
@@ -143,13 +143,11 @@ export async function updateAttendanceDayLog(
 
   // 3. Status Handling
   if (status === 'Absent' || status === 'Scheduled') {
-    // If setting to Absent or resetting to Scheduled Day, clear any existing log
     if (existingLog) {
       const { error } = await supabase.from('time_logs').delete().eq('id', existingLog.id)
       if (error) return { success: false, error: error.message }
     }
   } else if (status === 'Weekoff' || status === 'Leave') {
-    // Stored with 12:00 PM IST anchor so UTC conversions never spill into adjacent dates
     const logPayload = {
       employee_id: employeeId,
       shop_id: shopId,
@@ -165,7 +163,6 @@ export async function updateAttendanceDayLog(
 
     if (error) return { success: false, error: error.message }
   } else {
-    // Present or Late (only available for past/today)
     const clockIn = times?.clock_in || `${dateStr}T09:30:00+05:30`
     const clockOut = times?.clock_out || `${dateStr}T18:30:00+05:30`
     const diffHours = parseFloat(
@@ -194,16 +191,15 @@ export async function updateAttendanceDayLog(
   return { success: true }
 }
 
-// 6. Set Future Weekoff for a Specific Day of the Week in a Month
+// 6. Set Future Weekoff strictly from TOMORROW onwards
 export async function setFutureWeeklyOff(
   employeeId: string,
   dayOfWeek: number, // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
   month: number,
   year: number
-): Promise<{ success: boolean; count?: number; error?: string }> {
+): Promise<{ success: boolean; count?: number; removedCount?: number; error?: string }> {
   const supabase = await createClient()
 
-  // 1. Get Employee Profile & Shop ID
   const { data: profile } = await supabase
     .from('profiles')
     .select('shop_id, joining_date')
@@ -212,56 +208,110 @@ export async function setFutureWeeklyOff(
 
   const shopId = profile?.shop_id || null
 
-  // 2. IST Formatter for Today's Date Cutoff
+  // 1. Calculate Today and Tomorrow in IST
   const istFormatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Kolkata',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
   })
-  const todayStr = istFormatter.format(new Date())
+  
+  const now = new Date()
+  const todayStr = istFormatter.format(now)
 
-  // 3. Find all matching future days in the target month
+  // Calculate Tomorrow in IST (+1 day)
+  const tomorrowObj = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+  const tomorrowStr = istFormatter.format(tomorrowObj)
+
+  // 2. Month boundaries
   const totalDays = new Date(year, month, 0).getDate()
-  const targetDates: string[] = []
+  const monthStartStr = `${year}-${String(month).padStart(2, '0')}-01`
+  const monthEndStr = `${year}-${String(month).padStart(2, '0')}-${String(totalDays).padStart(2, '0')}`
+
+  // If the entire selected month is before tomorrow, disallow bulk changes
+  if (monthEndStr < tomorrowStr) {
+    return { 
+      success: false, 
+      count: 0, 
+      error: 'Recurring weekoffs can only be applied to upcoming dates (starting tomorrow).' 
+    }
+  }
+
+  // The schedule starts either on the 1st of that month or tomorrow (whichever is later)
+  const effectiveStartStr = monthStartStr > tomorrowStr ? monthStartStr : tomorrowStr
+
+  // 3. Collect the new matching dates (starting TOMORROW)
+  const targetNewDates: string[] = []
 
   for (let day = 1; day <= totalDays; day++) {
     const d = new Date(year, month - 1, day)
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 
-    // STRICT SAFETY GUARD: ONLY future dates (today onwards) and on/after joining date
-    if (d.getDay() === dayOfWeek && dateStr >= todayStr) {
+    // STRICT GUARD: Must be on/after tomorrow and on/after joining date
+    if (dateStr >= effectiveStartStr) {
       if (!profile?.joining_date || dateStr >= profile.joining_date) {
-        targetDates.push(dateStr)
+        if (d.getDay() === dayOfWeek) {
+          targetNewDates.push(dateStr)
+        }
       }
     }
   }
 
-  if (targetDates.length === 0) {
-    return { 
-      success: true, 
-      count: 0, 
-      error: 'No future dates match this weekday in the selected month.' 
+  // 4. CLEANUP: Delete only upcoming weekoffs that are >= tomorrow and don't match the new weekday
+  const { data: existingFutureWeekoffs } = await supabase
+    .from('time_logs')
+    .select('id, clock_in_time')
+    .eq('employee_id', employeeId)
+    .eq('status', 'Weekoff')
+    .gte('clock_in_time', `${effectiveStartStr}T00:00:00+05:30`)
+    .lte('clock_in_time', `${monthEndStr}T23:59:59+05:30`)
+
+  let removedCount = 0
+  if (existingFutureWeekoffs && existingFutureWeekoffs.length > 0) {
+    const idsToDelete: string[] = []
+
+    for (const log of existingFutureWeekoffs) {
+      const logDateStr = istFormatter.format(new Date(log.clock_in_time))
+      if (!targetNewDates.includes(logDateStr)) {
+        idsToDelete.push(log.id)
+      }
+    }
+
+    if (idsToDelete.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('time_logs')
+        .delete()
+        .in('id', idsToDelete)
+
+      if (deleteError) {
+        return { success: false, error: deleteError.message }
+      }
+      removedCount = idsToDelete.length
     }
   }
 
-  // 4. Upsert Weekoff records for eligible future dates only
-  for (const dateStr of targetDates) {
+  if (targetNewDates.length === 0) {
+    revalidatePath(`/admin/directory/${employeeId}`)
+    return { 
+      success: true, 
+      count: 0, 
+      removedCount,
+      error: 'No upcoming dates from tomorrow onwards match this weekday in the selected month.' 
+    }
+  }
+
+  // 5. UPSERT the new upcoming weekoff dates
+  for (const dateStr of targetNewDates) {
     const startOfDay = `${dateStr}T00:00:00+05:30`
     const endOfDay = `${dateStr}T23:59:59+05:30`
 
     const { data: existingLog } = await supabase
       .from('time_logs')
-      .select('id, clock_out_time')
+      .select('id')
       .eq('employee_id', employeeId)
       .gte('clock_in_time', startOfDay)
       .lte('clock_in_time', endOfDay)
       .maybeSingle()
-
-    // Safety: If an employee already clocked out on today, do NOT overwrite it
-    if (existingLog && existingLog.clock_out_time && dateStr === todayStr) {
-      continue
-    }
 
     const payload = {
       employee_id: employeeId,
@@ -280,6 +330,27 @@ export async function setFutureWeeklyOff(
   }
 
   revalidatePath(`/admin/directory/${employeeId}`)
-  revalidatePath('/admin')
-  return { success: true, count: targetDates.length }
+  return { success: true, count: targetNewDates.length, removedCount }
+}
+
+// 7. Scoped Fetch for Monthly Logs (Only updates the Attendance Ledger without full-page reload)
+export async function fetchEmployeeMonthLogs(
+  employeeId: string,
+  month: number,
+  year: number
+): Promise<{ logs: any[]; error?: string }> {
+  const supabase = await createClient()
+  const startOfMonth = `${year}-${String(month).padStart(2, '0')}-01T00:00:00+05:30`
+  const daysInMonthCount = new Date(year, month, 0).getDate()
+  const endOfMonth = `${year}-${String(month).padStart(2, '0')}-${String(daysInMonthCount).padStart(2, '0')}T23:59:59+05:30`
+
+  const { data: monthLogs, error } = await supabase
+    .from('time_logs')
+    .select('*')
+    .eq('employee_id', employeeId)
+    .gte('clock_in_time', startOfMonth)
+    .lte('clock_in_time', endOfMonth)
+
+  if (error) return { error: error.message, logs: [] }
+  return { logs: monthLogs || [] }
 }
